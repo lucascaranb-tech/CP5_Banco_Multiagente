@@ -1,119 +1,89 @@
-# 🏦 CP5 — Banco Multiagente com IA
+CP5 - Banco Multiagente
 
-Projeto desenvolvido para o **CP5 da FIAP**, com a proposta de criar um banco digital fictício em que o atendimento é realizado por uma equipe de agentes de IA.
+Banco digital fictício atendido por uma equipe de agentes de IA, construído com o OpenAI Agents SDK. Um agente de atendimento entende o pedido do cliente em linguagem natural e chama o agente especialista certo. Os dados são simulados e ficam em arquivos CSV.
 
-A ideia central é utilizar o **OpenAI Agents SDK** para transformar uma mensagem em linguagem natural em uma intenção, encaminhando o cliente para o agente especialista responsável pela operação.
+Projeto do CP5 (FIAP).
 
-## 🤖 Como funciona
+Grupo: Lucas Caram, Mauricio Bertuci Saletti, Nicolas Andrade Rodrigues, Leonardo Fortini Marcelo e Rhuan Pacheco Carreri.
 
-O fluxo principal é:
+Agentes
+Agente	Função
+AgenteAtendimento	Triagem: identifica a intenção e chama o especialista (ou vários, se a mensagem pedir mais de uma coisa)
+AgentePix	Saldo, extrato, contatos e PIX
+AgenteInvestimentos	Consultar, aplicar e resgatar investimentos
+AgenteCartao	Informa se o cliente tem cartão de crédito e o valor pré-aprovado
+AgenteDuvidas	Dúvidas gerais sobre produtos, tarifas e regras do banco
+Funcionalidades
 
-**Cliente → Agente de Atendimento → Handoff → Agente especialista → Tools → Dados persistidos**
+Conta e PIX
 
-O `AgenteAtendimento` funciona como uma camada de triagem. Ele identifica a intenção do cliente e realiza o handoff para o especialista adequado.
+Consulta de saldo da conta corrente
+Listar, buscar e adicionar contatos de PIX
+PIX para contatos salvos, com comprovante em imagem
+Vários PIX na mesma mensagem
 
-No notebook atual, estão implementados:
+Investimentos
 
-- 💸 **PIX e contatos** — listar, buscar e adicionar contatos e realizar PIX simulados;
-- 💰 **Consulta de saldo** — leitura do saldo diretamente do CSV;
-- ❓ **Dúvidas gerais** — agente especializado para perguntas sobre produtos, serviços, tarifas e regras do banco fictício;
-- 🛡️ **Guardrail de entrada** — bloqueio de solicitações que contenham dados sensíveis, como senha, CPF e cartão de crédito;
-- 🧠 **Memória de sessão** — utilização de `SQLiteSession` para manter o contexto entre chamadas;
-- 💾 **Persistência em CSV** — saldo, contatos e transações permanecem registrados em arquivos, em vez de ficarem apenas em memória.
+Três produtos: CDB Baixa Automática, CDB DI e Poupança
+Aplicar: o dinheiro sai do saldo da conta
+Resgatar: o dinheiro volta para a conta
+Consultar o que está investido em cada produto
 
-## 🔐 Segurança
+Extrato e comprovantes
 
-A chave da OpenAI não fica escrita diretamente no código. O notebook utiliza o sistema de **Secrets do Google Colab** para recuperar a variável `OPENAI_API_KEY` durante a execução:
+Extrato com as últimas movimentações (PIX, aplicações, resgates e baixas automáticas), em texto e em imagem
+Comprovantes em imagem para PIX, aplicação e resgate
 
-```python
-from google.colab import userdata
+Cartão de crédito
 
-os.environ["OPENAI_API_KEY"] = userdata.get("OPENAI_API_KEY")
-```
+Consulta de cartão e valor pré-aprovado
 
-Dessa forma, a chave não precisa ser publicada no repositório.
+Segurança
 
-Além disso, o projeto possui um guardrail de entrada que bloqueia solicitações contendo termos relacionados a dados sensíveis e testa também um cenário simples de tentativa de prompt injection.
+Guardrail de entrada: mensagens que mencionam senha, cpf, número do cartão ou cvv são bloqueadas antes de chegar aos agentes
 
-## 💾 Persistência dos dados
+Canais
 
-O projeto utiliza três arquivos CSV:
+Execução no notebook (Colab)
+Bot no Telegram, com os comprovantes e o extrato enviados como foto (e como arquivo, se a foto falhar)
+Regras dos investimentos
+Produto	Uso nos pagamentos	Resgate
+CDB Baixa Automática	Automático: se o saldo em conta não cobre um PIX, a diferença sai dele	Permitido, mas opcional
+Poupança	Igual ao CDB Baixa Automática	Permitido, mas opcional
+CDB DI	Nunca é usado automaticamente	Obrigatório para o dinheiro voltar à conta
+Na baixa automática, o CDB Baixa Automática é usado primeiro e depois a Poupança.
+Se o saldo em conta somado à baixa automática não cobre o PIX, ele é recusado, e o sistema avisa quando há valor no CDB DI que precisa ser resgatado.
+Não existe depósito externo, nem direto na conta corrente nem nas aplicações. O cliente investe e resgata livremente, mas só com o saldo que já tem.
+Dados (CSV)
 
-| Arquivo | Função |
-|---|---|
-| `saldo.csv` | Saldo atualizado do cliente |
-| `contatos_pix.csv` | Contatos salvos para PIX |
-| `transacoes_pix.csv` | Histórico das transações realizadas |
+Os arquivos ficam na pasta dados/ deste repositório. O notebook lê e grava em /content/drive/MyDrive/IA, então copie os arquivos para essa pasta do seu Google Drive.
 
-Ao realizar um PIX, o sistema verifica o contato, valida o saldo, atualiza o arquivo de saldo e registra a transação no histórico.
+Arquivo	Conteúdo
+contatos_pix.csv	Contatos de PIX do cliente (obrigatório: o notebook não cria este arquivo)
+saldo.csv	Saldo da conta corrente
+investimentos.csv	Valor aplicado em cada produto
+movimentacoes.csv	Histórico que alimenta o extrato
+transacoes_pix.csv	Registro dos PIX realizados
+cartao_credito.csv	Cartão e valor pré-aprovado
 
-## 🧪 Testes realizados
+Com RESETAR_BASE = True (célula de base de dados), o notebook recria saldo, investimentos, movimentações e PIX com R$ 15.000,00 de saldo inicial e guarda cópias .bak_ dos arquivos anteriores. Depois da primeira execução, mude para False para o saldo persistir entre execuções.
 
-O notebook contém testes para demonstrar o fluxo completo, incluindo:
+Como executar
+Abra CP5_Banco_Multiagente_c_c.ipynb no Google Colab.
+Em Secrets (ícone de chave), crie OPENAI_API_KEY e, para o bot, TELEGRAM_BOT_TOKEN, ativando o acesso ao notebook.
+Copie os CSVs de dados/ para MyDrive/IA no seu Drive.
+Rode as células em ordem. A seção "Testando o fluxo completo" executa um roteiro de conversas de exemplo.
 
-1. Consulta dos contatos salvos;
-2. Consulta do saldo;
-3. Realização de PIX;
-4. Conferência do saldo após a operação;
-5. Adição de um novo contato;
-6. Novo PIX para o contato adicionado;
-7. Consulta de dúvidas gerais;
-8. Teste do guardrail com tentativa de obtenção de dados sensíveis;
-9. Conferência da persistência dos dados após as operações.
+As chaves não ficam no código: são lidas dos Secrets do Colab.
 
-## 🧰 Tecnologias
+Exemplos de mensagens
+"Qual o meu saldo?"
+"Faça um PIX de R$ 50 para a Ana"
+"Quero aplicar R$ 5.000 no CDB DI"
+"Quais são os meus investimentos?"
+"Resgate R$ 1.000 do CDB DI"
+"Me mostre o extrato"
+"Eu tenho cartão de crédito?"
+Tecnologias
 
-- **Python**
-- **OpenAI Agents SDK**
-- **OpenAI API — `gpt-4o-mini`**
-- **Pandas**
-- **CSV** para persistência
-- **SQLiteSession** para memória de sessão
-- **Google Colab**
-
-## ▶️ Como executar
-
-O projeto foi desenvolvido para execução no **Google Colab**.
-
-1. Abra o arquivo [`CP5_Banco_Multiagente.ipynb`](./CP5_Banco_Multiagente.ipynb);
-2. Configure `OPENAI_API_KEY` nos Secrets do Google Colab;
-3. Execute a instalação do `openai-agents`;
-4. Faça o upload dos arquivos `saldo.csv`, `contatos_pix.csv` e `transacoes_pix.csv` para o ambiente do Colab;
-5. Execute as células em ordem;
-6. Rode os testes do fluxo completo e do guardrail.
-
-> **Observação:** os arquivos CSV necessários para execução não foram anexados nesta conversa junto ao notebook. Caso estejam disponíveis no projeto original, eles devem ser colocados na mesma pasta do notebook antes da execução.
-
-## 🎥 Demonstração
-
-O projeto também conta com uma demonstração em vídeo mostrando os testes e o funcionamento do banco multiagente.
-
-**Demo:** vídeo de testes do projeto — a ser adicionado ao repositório.
-
-## 📌 Contexto do projeto
-
-Este trabalho representa uma evolução do CP4, substituindo os dados mantidos apenas em memória por persistência em CSV e adicionando ferramentas de gerenciamento de contatos e memória de sessão.
-
-A parte mais interessante do projeto foi transformar regras de negócio em ferramentas que os agentes conseguem utilizar de forma controlada, mantendo a separação de responsabilidades entre atendimento, especialista de PIX e especialista de dúvidas.
-
-## 👥 Equipe
-
-Projeto desenvolvido em grupo para a FIAP.
-
-- Lucas Caram
-- Mauricio Bertuci Saletti
-- Nicolas Andrade Rodrigues
-- Leonardo Fortini Marcelo
-- Rhuan Pacheco Carreri
-
-## 📱 Sobre a publicação
-
-Este projeto também será apresentado no LinkedIn como parte do meu portfólio acadêmico e profissional, acompanhado de um vídeo de demonstração.
-
-A proposta é mostrar, na prática, como **agentes de IA, handoffs, tools, guardrails, persistência e memória de sessão** podem ser combinados para construir um fluxo de atendimento bancário fictício.
-
----
-
-**FIAP • CP5 • Inteligência Artificial • Python • OpenAI Agents SDK**
-
-#IA #AgentesDeIA #Python #OpenAI #FIAP #Fintech
+Python, OpenAI Agents SDK (gpt-4o-mini), pandas, Pillow, python-telegram-bot e Google Colab.
