@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# CP5 Banco Multiagente
+*.bak_*
+banco_cp5.db
+comprovantes/
