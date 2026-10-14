@@ -6,10 +6,6 @@ Banco digital simulado em que agentes de IA cuidam de PIX, investimentos e cart�
 
 > Banco fictício criado em um projeto acadêmico da FIAP. Sem vínculo com nenhuma instituição financeira real. Todos os dados são de teste.
 
-## Demonstração
-
-- Vídeo: [Assistir à demonstração](https://youtu.be/DhhIm4pBYdg)
-
 | Comprovante de PIX | Extrato da conta |
 |---|---|
 | ![Comprovante de PIX](docs/comprovante-pix.jpg) | ![Extrato](docs/extrato.jpg) |
