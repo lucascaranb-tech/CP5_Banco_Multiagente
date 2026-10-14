@@ -1,0 +1,2 @@
+id_movimentacao,id_cliente,tipo,descricao,valor,saldo_conta_apos,data
+409a5447-2a26-4d2b-8678-abd352585967,1,saldo_inicial,Saldo inicial da conta,15000.0,15000.0,2026-10-03T20:49:09.502142
