@@ -1,0 +1,7 @@
+openai-agents
+openai
+pandas
+pydantic
+python-telegram-bot
+nest_asyncio
+pillow
