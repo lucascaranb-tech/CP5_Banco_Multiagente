@@ -6,10 +6,6 @@ Simulated digital bank where AI agents handle PIX, investments and credit card r
 
 > Fictional bank built for a university project at FIAP. Not affiliated with any real financial institution. All data is test data.
 
-## Demo
-
-- Video: [Watch demo](https://youtu.be/DhhIm4pBYdg)
-
 | PIX receipt | Account statement |
 |---|---|
 | ![PIX receipt](docs/comprovante-pix.jpg) | ![Statement](docs/extrato.jpg) |
